@@ -90,6 +90,7 @@ export const TimelinePendingApprovalRow = memo(function TimelinePendingApprovalR
                     isResponding={respondingRequestIds.includes(approval.requestId)}
                     canRespond={canRespond}
                     options={approval.options}
+                    showSessionOption={approval.requestKind === "mcp-elicitation"}
                     onRespondToApproval={onRespondToApproval}
                   />
                 </>
