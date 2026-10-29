@@ -40,7 +40,7 @@ describe("Codex MCP elicitation approvals", () => {
         { decision: "decline", label: "Decline" },
         { decision: "acceptForSession", label: "Allow for this session" },
         { decision: "acceptAlways", label: "Always allow Safari" },
-        { decision: "accept", label: "Approve" },
+        { decision: "accept", label: "Allow once" },
       ],
     });
   });
@@ -185,7 +185,28 @@ describe("Codex MCP elicitation approvals", () => {
     NodeAssert.deepStrictEqual(describeMcpElicitation(onceOnlyRequest).options, [
       { decision: "cancel", label: "Cancel" },
       { decision: "decline", label: "Decline" },
-      { decision: "accept", label: "Approve" },
+      { decision: "accept", label: "Allow once" },
     ]);
+
+    const persistentDefaultRequest = {
+      ...onceOnlyRequest,
+      requestedSchema: {
+        type: "object",
+        properties: { approval: { type: "string", enum: ["always"], default: "always" } },
+      },
+    } satisfies EffectCodexSchema.McpServerElicitationRequestParams;
+    NodeAssert.equal(
+      describeMcpElicitation(persistentDefaultRequest).options.at(-1)?.label,
+      "Approve",
+    );
+
+    const metadataOnlyRequest = {
+      ...request,
+      requestedSchema: { type: "object", properties: {} },
+    } satisfies EffectCodexSchema.McpServerElicitationRequestParams;
+    NodeAssert.equal(
+      describeMcpElicitation(metadataOnlyRequest).options.at(-1)?.label,
+      "Allow once",
+    );
   });
 });

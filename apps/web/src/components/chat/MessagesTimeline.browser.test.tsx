@@ -1164,4 +1164,22 @@ it("keeps concurrent approvals actionable outside collapsed work and restores se
   await expect
     .element(screen.getByRole("button", { name: "Open the current tab", exact: true }))
     .toBeVisible();
+  await screen.rerender(
+    ui({
+      timelineEntries: [],
+      pendingApprovals: [
+        {
+          ...approvals[1]!,
+          requestKind: "mcp-elicitation",
+          options: [
+            { decision: "decline", label: "Decline" },
+            { decision: "accept", label: "Allow once" },
+            { decision: "acceptForSession", label: "Always allow this session" },
+          ],
+        },
+      ],
+    }),
+  );
+  await click(screen.button("Always allow this session"));
+  expect(onRespondToApproval).toHaveBeenLastCalledWith(appRequest, "acceptForSession");
 });

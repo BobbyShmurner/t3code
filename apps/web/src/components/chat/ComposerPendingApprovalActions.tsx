@@ -17,6 +17,7 @@ interface ComposerPendingApprovalActionsProps {
   canRespond: boolean;
   disabled?: boolean;
   options?: ReadonlyArray<ProviderApprovalOption> | undefined;
+  showSessionOption?: boolean;
   onRespondToApproval: (
     requestId: RuntimeRequestId,
     decision: ProviderApprovalDecision,
@@ -37,13 +38,20 @@ export const ComposerPendingApprovalActions = memo(function ComposerPendingAppro
   canRespond,
   disabled = false,
   options = DEFAULT_APPROVAL_OPTIONS,
+  showSessionOption = false,
   onRespondToApproval,
 }: ComposerPendingApprovalActionsProps) {
   const primaryOptions = options.filter(
-    (option) => option.decision === "decline" || option.decision === "accept",
+    (option) =>
+      option.decision === "decline" ||
+      option.decision === "accept" ||
+      (showSessionOption && option.decision === "acceptForSession"),
   );
   const moreOptions = options.filter(
-    (option) => option.decision !== "decline" && option.decision !== "accept",
+    (option) =>
+      option.decision !== "decline" &&
+      option.decision !== "accept" &&
+      !(showSessionOption && option.decision === "acceptForSession"),
   );
 
   return (

@@ -54,6 +54,7 @@ const McpElicitationForm = Schema.Struct({
 });
 const isMcpElicitationMetadata = Schema.is(McpElicitationMetadata);
 const isMcpElicitationForm = Schema.is(McpElicitationForm);
+const isJsonObject = Schema.is(Schema.Record(Schema.String, Schema.Json));
 
 type McpElicitationPersistenceDecision = Extract<
   ProviderApprovalDecision,
@@ -142,6 +143,26 @@ export function describeMcpElicitation(
     }
   }
 
+  const onceResponse = toMcpElicitationResponse(payload, "accept");
+  const onceContent = isJsonObject(onceResponse.content) ? onceResponse.content : {};
+  const isOnce =
+    persistenceOptions.size > 0 &&
+    onceResponse.action === "accept" &&
+    Object.entries(form?.properties ?? {}).every(([key, field]) => {
+      const options = mcpElicitationFieldOptions(field);
+      if (
+        options.some((option) => mcpElicitationPersistenceDecision(option.value)) ||
+        (field.type !== "boolean" && isMcpElicitationPersistenceField(key, field))
+      ) {
+        const value = onceContent[key];
+        return typeof value === "string" && /once/i.test(value);
+      }
+      if (field.type === "boolean" && isMcpElicitationPersistenceField(key, field)) {
+        return onceContent[key] === false;
+      }
+      return true;
+    });
+
   return {
     appName,
     options: [
@@ -165,7 +186,7 @@ export function describeMcpElicitation(
             },
           ]
         : []),
-      { decision: "accept", label: "Approve" },
+      { decision: "accept", label: isOnce ? "Allow once" : "Approve" },
     ],
   };
 }
